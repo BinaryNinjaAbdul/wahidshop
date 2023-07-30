@@ -1,6 +1,6 @@
 import asyncHandler from '../middleware/asyncHandler.js';
 import User from '../models/userModel.js';
-import jwt from 'jsonwebtoken';
+import generateToken from '../utils/generateToken.js';
 
 /***
  * @desc Auth User & get token
@@ -17,17 +17,7 @@ const authUser = asyncHandler(async (req, res) => {
     throw new Error('Invalid email or password');
   }
 
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-
-  // Set JWT as HTTP-Only Cookie
-  res.cookie('jwt', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 Days
-  });
+  generateToken(res, user._id);
 
   res.json({
     _id: user._id,
@@ -43,7 +33,37 @@ const authUser = asyncHandler(async (req, res) => {
  * @access Public
  */
 const registerUser = asyncHandler(async (req, res) => {
-  res.send('Register users');
+  const { name, email, password } = req.body;
+
+  //   if (!name || !email || !password) {
+  //     res.status(400);
+  //     throw new Error('A user must have a name, email and password');
+  //   }
+
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error('User already exists');
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    password,
+  });
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Invalid user data');
+  }
+
+  generateToken(res, user._id);
+  res.status(201).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    isAdmin: user.isAdmin,
+  });
 });
 
 /***
@@ -52,7 +72,14 @@ const registerUser = asyncHandler(async (req, res) => {
  * @access Private
  */
 const logoutUser = asyncHandler(async (req, res) => {
-  res.send('LogOut users');
+  res.cookie('jwt', '', {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+
+  res.status(200).json({
+    message: 'Logged out successfully',
+  });
 });
 
 /***
