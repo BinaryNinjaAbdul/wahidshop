@@ -29,7 +29,6 @@ const Header = () => {
   return (
     <header>
       <Navbar bg="dark" variant="dark" expand="md" collapseOnSelect>
-        console.log(cartItems);
         <Container>
           <LinkContainer to="/">
             <Navbar.Brand>
