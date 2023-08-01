@@ -100,7 +100,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @access  Private
 
 const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment } = req.body;
+  let { rating, comment } = req.body;
   const product = await Product.findById(req.params.id);
   if (product) {
     const alreadyReviewed = product.reviews.find(
@@ -113,7 +113,7 @@ const createProductReview = asyncHandler(async (req, res) => {
 
     const review = {
       name: req.user.name,
-      rating: Number(rating),
+      rating,
       comment,
       user: req.user._id,
     };
@@ -123,7 +123,6 @@ const createProductReview = asyncHandler(async (req, res) => {
     product.rating =
       product.reviews.reduce((acc, review) => acc + review.rating, 0) /
       product.reviews.length;
-
     await product.save();
     res.status(201).json({ message: 'Review Added' });
   } else {
