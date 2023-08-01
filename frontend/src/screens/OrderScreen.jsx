@@ -8,6 +8,7 @@ import {
   Form,
   Button,
   Card,
+  ListGroupItem,
 } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
@@ -18,6 +19,7 @@ import {
   useGetOrderDetailsQuery,
   usePayOrderMutation,
   useGetPayPalClientIDQuery,
+  useDeliveredOrdeMutation,
 } from '../slices/ordersApiSlice';
 
 const OrderScreen = () => {
@@ -33,6 +35,9 @@ const OrderScreen = () => {
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
 
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
+
+  const [deliveredOrder, { isLoading: loadingDelivered }] =
+    useDeliveredOrdeMutation();
 
   const {
     data: paypal,
@@ -98,6 +103,16 @@ const OrderScreen = () => {
       .then((orderId) => {
         return orderId;
       });
+  }
+
+  async function deliveredOrderHandler() {
+    try {
+      await deliveredOrder(orderId);
+      refetch();
+      toast.success('Order delivered');
+    } catch (error) {
+      toast.error(error?.data?.message || error.message);
+    }
   }
 
   return isLoading ? (
@@ -217,8 +232,21 @@ const OrderScreen = () => {
                     )}
                   </ListGroup.Item>
                 )}
-
-                {/* mark as delivered*/}
+                {loadingDelivered && <Loader />}
+                {userInfo &&
+                  userInfo.isAdmin &&
+                  order.isPaid &&
+                  !order.isDelivered && (
+                    <ListGroup.Item>
+                      <Button
+                        type="button"
+                        className="btn btn-block"
+                        onClick={deliveredOrderHandler}
+                      >
+                        Mark AS Delivered
+                      </Button>
+                    </ListGroup.Item>
+                  )}
               </ListGroup.Item>
             </ListGroup>
           </Card>
