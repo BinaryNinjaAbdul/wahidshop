@@ -8,7 +8,7 @@ import asyncHandler from '../middleware/asyncHandler.js';
  */
 
 const getAllProducts = asyncHandler(async (req, res) => {
-  const pageSize = 12;
+  const pageSize = process.env.PAGINATION_LIMIT;
   const page = Number(req.query.pageNumber) || 1;
   const pageToSkip = pageSize * (page - 1);
 
