@@ -11,6 +11,7 @@ const ProductListScreen = () => {
   const deleteHandler = (productId) => {
     console.log(productId);
   };
+  console.log(123);
 
   return (
     <>
