@@ -8,8 +8,13 @@ import asyncHandler from '../middleware/asyncHandler.js';
  */
 
 const getAllProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find();
-  res.json(products);
+  const pageSize = 4;
+  const page = Number(req.query.pageNumber) || 1;
+  const pageToSkip = pageSize * (page - 1);
+  const count = await Product.countDocuments();
+
+  const products = await Product.find().limit(pageSize).skip(pageToSkip);
+  res.status(200).json({ products, page, pages: Math.ceil(count / pageSize) });
 });
 
 /***
@@ -27,7 +32,7 @@ const getProduct = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
 
-  res.json(product);
+  res.status(200).json(product);
 });
 
 /***

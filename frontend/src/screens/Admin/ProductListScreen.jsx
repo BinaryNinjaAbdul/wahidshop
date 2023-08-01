@@ -1,6 +1,7 @@
 import { LinkContainer } from 'react-router-bootstrap';
 import { Table, Button, Row, Col } from 'react-bootstrap';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { useParams } from 'react-router-dom';
 import Message from '../../components/Message';
 import Loader from '../../components/Loader';
 import { toast } from 'react-toastify';
@@ -9,9 +10,14 @@ import {
   useCreateProductMutation,
   useDeleteProductMutation,
 } from '../../slices/productsApiSlice';
+import Paginate from '../../components/Paginate';
 
 const ProductListScreen = () => {
-  const { data: products, isLoading, error, refetch } = useGetProductsQuery();
+  const { pageNumber } = useParams();
+
+  const { data, isLoading, error, refetch } = useGetProductsQuery({
+    pageNumber,
+  });
 
   const [createProduct, { isLoading: loadingCreate }] =
     useCreateProductMutation();
@@ -38,7 +44,7 @@ const ProductListScreen = () => {
         refetch();
         toast.success('Product deleted successfully');
       } catch (err) {
-        toast.error(error?.data?.message || error.erro);
+        toast.error(error?.data?.message || error.error);
       }
     }
   };
@@ -60,7 +66,9 @@ const ProductListScreen = () => {
       {isLoading ? (
         <Loader />
       ) : error ? (
-        <Message variant="danger">error?.data?.message || error.error</Message>
+        <Message variant="danger">
+          {error?.data?.message || error.error}
+        </Message>
       ) : (
         <>
           <Table striped hover responsive className="table-sm">
@@ -75,7 +83,7 @@ const ProductListScreen = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product, index) => (
+              {data.products.map((product, index) => (
                 <tr key={product._id}>
                   <td>{product._id}</td>
                   <td>{product.name}</td>
@@ -100,6 +108,7 @@ const ProductListScreen = () => {
               ))}
             </tbody>
           </Table>
+          <Paginate pages={data.pages} page={data.page} isAdmin={true} />
         </>
       )}
     </>
